@@ -16,7 +16,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 RUN mkdir models
-RUN wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth -P models/
+# RUN wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth -P models/
 
 # Install any dependencies
 RUN pip install --upgrade pip && \
