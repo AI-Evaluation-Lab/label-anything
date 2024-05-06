@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
-import PrettyJson from './PrettyJson';
+// import PrettyJson from './PrettyJson';
 import { useNavigate } from 'react-router-dom';
 import Card from '@mui/material/Card';
 import CardMedia from '@mui/material/CardMedia';
@@ -10,17 +10,17 @@ import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import moment from 'moment';
 
-const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
-    height: 10,
-    borderRadius: 5,
-    [`&.${linearProgressClasses.colorPrimary}`]: {
-        backgroundColor: theme.palette.grey[theme.palette.mode === 'light' ? 200 : 800],
-    },
-    [`& .${linearProgressClasses.bar}`]: {
-        borderRadius: 5,
-        backgroundColor: theme.palette.mode === 'light' ? '#1a90ff' : '#308fe8',
-    },
-}));
+// const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
+//     height: 10,
+//     borderRadius: 5,
+//     [`&.${linearProgressClasses.colorPrimary}`]: {
+//         backgroundColor: theme.palette.grey[theme.palette.mode === 'light' ? 200 : 800],
+//     },
+//     [`& .${linearProgressClasses.bar}`]: {
+//         borderRadius: 5,
+//         backgroundColor: theme.palette.mode === 'light' ? '#1a90ff' : '#308fe8',
+//     },
+// }));
 
 const ImageList = () => {
     const navigate = useNavigate();

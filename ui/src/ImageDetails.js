@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import PrettyJson from './PrettyJson';
+// import PrettyJson from './PrettyJson';
 import { useNavigate } from 'react-router-dom';
 
 import Card from '@mui/material/Card';
@@ -11,8 +11,6 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Avatar from '@mui/material/Avatar';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
-import EditIcon from '@mui/icons-material/Edit';
-import PreviewIcon from '@mui/icons-material/Preview';
 import EastIcon from '@mui/icons-material/East';
 
 const ImageDetails = () => {
@@ -62,16 +60,16 @@ const ImageDetails = () => {
                     <>
                       <ListItem alignItems="" secondaryAction={
                         <React.Fragment>
-                          {imageData.masks[d].path !== "" && (
+                          {/* {imageData.masks[d].path !== "" && (
                             <Button className="mr-2" size="small" variant="outlined" startIcon={<PreviewIcon />}>
                               <small>View</small>
                             </Button>
-                          )}
+                          )} */}
                           {imageData.masks[d].path !== "" && (
-                            <Button size="small" variant="contained" startIcon={<EditIcon />}>
-                              <small>Edit</small>
+                            <Button onClick={()=>{navigate(`/images/${imageData.id}/annotate/${d}`, { state: { imageData: imageData } });}} size="small" variant="contained" endIcon={<EastIcon />}>
+                              <small>Redo Segmentation</small>
                             </Button>
-                          )}
+                          )}  
                           {imageData.masks[d].path === "" && (
                             <Button onClick={()=>{navigate(`/images/${imageData.id}/annotate/${d}`, { state: { imageData: imageData } });}} size="small" variant="contained" endIcon={<EastIcon />}>
                               <small>Start Segmenting</small>
@@ -98,7 +96,7 @@ const ImageDetails = () => {
                   ))}
                 </List>
               </div>
-              <PrettyJson data={imageData}/>
+              {/* <PrettyJson data={imageData}/> */}
             </Card>
           </div>
         ) : (

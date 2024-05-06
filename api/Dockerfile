@@ -28,6 +28,8 @@ COPY . .
 # Expose the Flask port
 EXPOSE 5000
 
-# Run the Flask app
-CMD ["python", "app.py", "--reset"]
+# # Run the Flask app
+# CMD ["python", "app.py", "--host=0.0.0.0"]
+
+CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
 

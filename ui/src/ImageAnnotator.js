@@ -18,7 +18,6 @@ const ImageAnnotator = () => {
           const response = await fetch(`${process.env.PUBLIC_URL}/masks.json`);
           const data = await response.json();
           const typeInfo = data.filter(d=>d.type == type)[0]
-          console.log(typeInfo, type)
           setJsonData(typeInfo);
         } catch (error) {
           console.error('Error fetching JSON data:', error);

@@ -14,3 +14,14 @@ services:
       - ./masks:/masks
       - ./embeddings:/embeddings
       - ./masks.json:/masks.json
+  ui:
+    build:
+      context: ./ui
+    # container_name: labelanything/api  # Name for your Docker image
+    ports:
+      - 3000:80
+    volumes:
+      - ./masks.json:/app/public/masks.json
+      - ./.env:/app/.env
+    env_file:
+      - ./.env  # Path to your .env file in the parent directory

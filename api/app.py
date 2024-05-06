@@ -106,74 +106,74 @@ def get_image_as_png(image_id):
         return jsonify({'message': 'Image not found'}), 404
     return send_file(image.path, mimetype='image/png')
 
-# Update is_difficult for an Image by id
-@app.route('/images/<int:image_id>/is_difficult', methods=['PATCH'])
-def update_is_difficult(image_id):
-    image = Image.query.get(image_id)
-    if image is None:
-        return jsonify({'message': 'Image not found'}), 404
+# # Update is_difficult for an Image by id
+# @app.route('/images/<int:image_id>/is_difficult', methods=['PATCH'])
+# def update_is_difficult(image_id):
+#     image = Image.query.get(image_id)
+#     if image is None:
+#         return jsonify({'message': 'Image not found'}), 404
 
-    data = request.get_json()
-    is_difficult = data.get('is_difficult')
-    if is_difficult is None:
-        return jsonify({'message': 'is_difficult data not provided'}), 400
+#     data = request.get_json()
+#     is_difficult = data.get('is_difficult')
+#     if is_difficult is None:
+#         return jsonify({'message': 'is_difficult data not provided'}), 400
 
-    image.is_difficult = is_difficult
-    db.session.commit()
+#     image.is_difficult = is_difficult
+#     db.session.commit()
 
-    return jsonify(to_dict(image))
+#     return jsonify(to_dict(image))
 
-# Update comments for an Image by id
-@app.route('/images/<int:image_id>/comments', methods=['PATCH'])
-def update_comments(image_id):
-    image = Image.query.get(image_id)
-    if image is None:
-        return jsonify({'message': 'Image not found'}), 404
+# # Update comments for an Image by id
+# @app.route('/images/<int:image_id>/comments', methods=['PATCH'])
+# def update_comments(image_id):
+#     image = Image.query.get(image_id)
+#     if image is None:
+#         return jsonify({'message': 'Image not found'}), 404
 
-    data = request.get_json()
-    comments = data.get('comments')
-    if comments is None:
-        return jsonify({'message': 'comments data not provided'}), 400
+#     data = request.get_json()
+#     comments = data.get('comments')
+#     if comments is None:
+#         return jsonify({'message': 'comments data not provided'}), 400
 
-    image.comments = comments
-    db.session.commit()
+#     image.comments = comments
+#     db.session.commit()
 
-    return jsonify(to_dict(image))
+#     return jsonify(to_dict(image))
 
-@app.route('/images/<int:image_id>/markers/<string:marker_type>', methods=['PATCH'])
-def update_marker(image_id, marker_type):
-    try:
-        image = Image.query.get(image_id)
-        if image is None:
-            return jsonify({'message': 'Image not found'}), 404
+# @app.route('/images/<int:image_id>/markers/<string:marker_type>', methods=['PATCH'])
+# def update_marker(image_id, marker_type):
+#     try:
+#         image = Image.query.get(image_id)
+#         if image is None:
+#             return jsonify({'message': 'Image not found'}), 404
         
-        data = request.get_json()
-        new_marker = data.get('new_marker')
-        if new_marker is None:
-            return jsonify({'message': 'New marker data not provided'}), 400
+#         data = request.get_json()
+#         new_marker = data.get('new_marker')
+#         if new_marker is None:
+#             return jsonify({'message': 'New marker data not provided'}), 400
 
-        marker_types = image.marker_types
-        if marker_type not in marker_types:
-            return jsonify({'message': f'Marker type "{marker_type}" not found for this image'}), 404
+#         marker_types = image.marker_types
+#         if marker_type not in marker_types:
+#             return jsonify({'message': f'Marker type "{marker_type}" not found for this image'}), 404
 
-        updated_markers = {}
-        for key in marker_types:
-            if key == marker_type:
-                updated_markers[key]= new_marker
-            else:
-                updated_markers[key] = marker_types[key]
+#         updated_markers = {}
+#         for key in marker_types:
+#             if key == marker_type:
+#                 updated_markers[key]= new_marker
+#             else:
+#                 updated_markers[key] = marker_types[key]
 
-        image.date_updated = datetime.utcnow()
-        image.markers = updated_markers
-        db.session.commit()
+#         image.date_updated = datetime.utcnow()
+#         image.markers = updated_markers
+#         db.session.commit()
 
-        return jsonify(to_dict(image))
-    except SQLAlchemyError as e:
-        # Log the error for debugging
-        print(f"Failed to update marker: {e}")
-        # Rollback changes if an error occurs
-        db.session.rollback()
-        return jsonify({'message': 'Failed to update marker'}), 500
+#         return jsonify(to_dict(image))
+#     except SQLAlchemyError as e:
+#         # Log the error for debugging
+#         print(f"Failed to update marker: {e}")
+#         # Rollback changes if an error occurs
+#         db.session.rollback()
+#         return jsonify({'message': 'Failed to update marker'}), 500
 
 @app.route('/images/<int:image_id>/mask', methods=['GET'])
 def get_mask(image_id):
@@ -293,7 +293,7 @@ def reset(reset=False):
     if reset:
         print('Reset detected, reinitializing everything..')
         delete_contents('MASKS_DIR')
-        delete_contents('EMBEDDINGS_DIR')
+        # delete_contents('EMBEDDINGS_DIR')
 
         generate_embeddings(os.getenv('IMAGES_DIR'), os.getenv('EMBEDDINGS_DIR'))
         
@@ -305,18 +305,12 @@ def reset(reset=False):
         initialize_images()
 
 
+with app.app_context():
+    # if len(os.listdir(os.getenv('EMBEDDINGS_DIR'))) != len(os.listdir(os.getenv('IMAGES_DIR'))):
+    reset(True)
+
 
 if __name__ == '__main__':
-
-    args = sys.argv[1:]
-    reset_flag = '--reset' in args
-    
-    with app.app_context():
-        if len(os.listdir(os.getenv('EMBEDDINGS_DIR'))) == 0:
-            # reset(True)
-            reset(reset_flag)
-
-    
     # initialize_images()
     app.run(debug=True)
 

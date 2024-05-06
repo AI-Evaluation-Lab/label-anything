@@ -42,10 +42,14 @@ def generate_embeddings(images_path=IMAGES_PATH, out_dir=EMBEDDINGS_PATH):
     images = os.listdir(images_path)
 
     for image in tqdm(images, desc= "Generating embeddings"):
-        im = cv2.imread(f'{images_path}/{image}')
-        im_rgb = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-
-        mask_predictor.set_image(im_rgb)
         embedding_name =  image.split('.png')[0]
-        mask_predictor.save_image_embedding(f'{out_dir}/{embedding_name}.pt')
-        print('Saved embedding:', f'{out_dir}/{embedding_name}.pt')
+        if os.path.exists(f'{out_dir}/{embedding_name}.pt'):
+            print('Embedding exists:', f'{out_dir}/{embedding_name}.pt')
+            pass
+        else:
+            im = cv2.imread(f'{images_path}/{image}')
+            im_rgb = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+
+            mask_predictor.set_image(im_rgb)
+            mask_predictor.save_image_embedding(f'{out_dir}/{embedding_name}.pt')
+            print('Saved embedding:', f'{out_dir}/{embedding_name}.pt')
