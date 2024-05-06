@@ -1,28 +1,19 @@
-// import logo from './logo.svg';
 import './App.css';
-import IA from './ImageAnnotator.js'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import ImageList from './ImageList';
+import ImageDetails from './ImageDetails';
+import ImageAnnotator from './ImageAnnotator';
 
 function App() {
-  return (
-    <IA/>
-  );
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<ImageList />} />
+                <Route path="/images/:id" element={<ImageDetails />} />
+                <Route path="/images/:id/annotate/:type" element={<ImageAnnotator />} />
+            </Routes>
+        </Router>
+    );
 }
 
 export default App;
-
-// <div className="App">
-//   <header className="App-header">
-//     <img src={logo} className="App-logo" alt="logo" />
-//     <p>
-//       Edit <code>src/App.js</code> and save to reload.
-//     </p>
-//     <a
-//       className="App-link"
-//       href="https://reactjs.org"
-//       target="_blank"
-//       rel="noopener noreferrer"
-//     >
-//       Learn React
-//     </a>
-//   </header>
-// </div>

@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  api:
+    build:
+      context: ./api
+    # container_name: labelanything/api  # Name for your Docker image
+    ports:
+      - 5000:5000
+    env_file:
+      - ./.env  # Path to your .env file in the parent directory
+    volumes:
+      - ./images:/images
+      - ./masks:/masks
+      - ./embeddings:/embeddings
+      - ./masks.json:/masks.json

@@ -1,0 +1,38 @@
+[
+    {
+        "label": "Ileum (Right)",
+        "type": "IL_R",
+        "description": "Mask for the ileum on the right (patient's left)",
+        "background": "#4E79A7"
+    },
+    {
+        "label": "Ileum (Left)",
+        "type": "IL_L",
+        "description": "Mask for the ileum on the left (patient's right)",
+        "background": "#F28E2B"
+    },
+    {
+        "label": "Ischium (Right)",
+        "type": "IS_R",
+        "description": "Mask for the ischium on the right (patient's left)",
+        "background": "#59A14F"
+    },
+    {
+        "label": "Ischium (Left)",
+        "type": "IS_L",
+        "description": "Mask for the ischium on the left (patient's right)",
+        "background": "#E15759"
+    },
+    {
+        "label": "Obdurator Foramen (Right)",
+        "type": "OB_R",
+        "description": "Mask for the obdurator foramen on the right (patient's left)",
+        "background": "#9C755F"
+    },
+    {
+        "label": "Obdurator Foramen (Left)",
+        "type": "OB_L",
+        "description": "Mask for the obdurator foramen on the left (patient's right)",
+        "background": "#76B7B2"
+    }
+]

@@ -1,112 +1,205 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+import { useParams, useLocation } from 'react-router-dom';
+import AnnotationControls from './AnnotatorControls';
+import AdditiveSubtractiveSwitch from './AdditiveSubtractiveSwitch';
+
 
 const ImageAnnotator = () => {
-  const [markers, setMarkers] = useState([]);
-  const [imageUrl, setImageUrl] = useState('http://localhost:5000/image/1183.png');
-  const [maskUrl, setMaskUrl] = useState('http://localhost:5000/image/1183.png');
-  const [refreshFlag, setRefreshFlag] = useState(false); // State variable to force a re-render
-  const [imageWidth, setImageWidth] = useState(0);
-  const [imageHeight, setImageHeight] = useState(0);
-  const [shouldRenderMask, setShouldRenderMask] = useState(true); // State variable to toggle mask rendering
+    const { id, type } = useParams();
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchMask(); // Fetch the initial mask
-  }, [refreshFlag]);
+    const [jsonData, setJsonData] = useState(null)
+    useEffect(() => {
+      const fetchJSON = async () => {
+        try {
+          const response = await fetch(`${process.env.PUBLIC_URL}/masks.json`);
+          const data = await response.json();
+          const typeInfo = data.filter(d=>d.type == type)[0]
+          console.log(typeInfo, type)
+          setJsonData(typeInfo);
+        } catch (error) {
+          console.error('Error fetching JSON data:', error);
+        }
+      };
+  
+      fetchJSON();
+    }, []);
+    
+    const imageUrl = `http://localhost:5000/images/${id}/png`
+    const [markers, setMarkers] = useState([]);
+    const [labels, setLabels] = useState([]);
+    const [markerType, setMarkerType] = useState(['additive']);
+    // const [imageUrl, setImageUrl] = useState(`http://localhost:5000/images/${id}/png`);
+    const [maskUrl, setMaskUrl] = useState(imageUrl);
+    const [refreshFlag, setRefreshFlag] = useState(false);
+    const [imageWidth, setImageWidth] = useState(0);
+    const [imageHeight, setImageHeight] = useState(0);
+    const [shouldRenderMask, setShouldRenderMask] = useState(true);
 
+    const markerTypeToLabel = {
+      "additive": 1,
+      "subtractive": 0
+    } 
 
+    const labelToColor = {
+      1:"green",
+      0: "red" 
+    }
 
-  const fetchMask = () => {
-    // Fetch the mask from the backend, passing the current markers
-    axios.get('http://localhost:5000/getMask', { params: { markers: JSON.stringify(markers) }, responseType: 'blob' })
-      .then(response => {
-        setMaskUrl(URL.createObjectURL(response.data)); // Set the image URL to force re-render of the image
-        setShouldRenderMask(true); // Toggle the state to force re-render of the mask
-        setRefreshFlag(false); // Reset the refreshFlag after fetch
+    // useEffect(() => {
+    //     fetchMask();
+    // }, [refreshFlag]);
+
+    useEffect(() => {
+      if (markers.length ==0) {
+        console.log('Ooh', markers)
+        setMaskUrl(imageUrl)
+      }
+
+      if (markers.length > 0) {
+          fetchMask();
+      }
+    }, [markers]);
+
+    const fetchMask = () => {
+      
+
+        axios.get(`http://localhost:5000/images/${id}/mask`, { params: { markers: JSON.stringify(markers), labels: JSON.stringify(labels) }, responseType: 'blob' })
+            .then(response => {
+                setMaskUrl(URL.createObjectURL(response.data));
+                setShouldRenderMask(true);
+                setRefreshFlag(false);
+            })
+            .catch(error => {
+                console.error('Error fetching mask:', error);
+            });
+    };
+
+    const addMarker = (event) => {
+        const { offsetX, offsetY } = event.nativeEvent;
+        console.log("Oiya", markerType)
+        setMarkers(prevMarkers => [...prevMarkers, { x: offsetX, y: offsetY }]);
+        setLabels(prevLabels=> [...prevLabels, markerTypeToLabel[markerType]])
+        // fetchMask();
+    };
+
+    const saveMarkers = () => {
+      // save markers
+      axios.patch(`http://localhost:5000/images/${id}/mask`, {
+        markers: JSON.stringify(markers),
+        labels: JSON.stringify(labels),
+        type: type
+      }, {
+        responseType: 'blob'
       })
-      .catch(error => {
-        console.error('Error fetching mask:', error);
-      });
-  };
+        .then(response => {
+          setMaskUrl(URL.createObjectURL(response.data));
+          setShouldRenderMask(true);
+          setRefreshFlag(false);
+          
+        }).then(()=> {
+          console.log('trigger navigate')
+          navigate(`/images/${id}`)
+        })
+        .catch(error => {
+          console.error('Error fetching mask:', error);
+        });
+    };
 
-  const addMarker = (event) => {
-    const { offsetX, offsetY } = event.nativeEvent;
-    const newMarker = { x: offsetX, y: offsetY };
-    setMarkers([...markers, newMarker]);
-    // setRefreshFlag(!refreshFlag); // Set the refreshFlag to trigger a re-render
-    fetchMask(); // Trigger the GET request when the user clicks on the image
-  };
+    const handleImageLoad = (event) => {
+        setImageWidth(event.target.width);
+        setImageHeight(event.target.height);
+    };
 
-  const saveMarkers = () => {
-    // Make an API call to save markers
-    axios.post('https://api.example.com/save', { markers })
-      .then(response => {
-        console.log('Markers saved:', response.data);
-      })
-      .catch(error => {
-        console.error('Error saving markers:', error);
-      });
-  };
+    const handleUndo = () => {
+      // markers.pop()
+      setMarkers(prevMarkers => prevMarkers.slice(0, -1))
+      setLabels(prevLabels => prevLabels.slice(0, -1))
+      // fetchMask()
+    
+    }
 
-  const handleImageLoad = (event) => {
-    setImageWidth(event.target.width);
-    setImageHeight(event.target.height);
-  };
+    const handleMarkerTypeChange= (newType) => {
+      // markers.pop()
+      setMarkerType(newType)
+      console.log(newType)
+      // fetchMask()
+    
+    }
 
-  return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
-      <img
-        src={imageUrl}
-        alt="Annotated Image"
-        onClick={addMarker}
-        style={{ position: 'relative' }}
-        onLoad={handleImageLoad}
-      />
-      {shouldRenderMask && (
-        <div style={{ position: 'absolute', top: 0, left: 0 }}>
-          <img
-            src={maskUrl} // Use the same image URL for the mask to force re-render
-            alt="Mask"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: imageWidth,
-              height: imageHeight,
-              opacity: 0.5, // Adjust the opacity as needed
-            }}
-          />
-          <div
-            onClick={addMarker}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: imageWidth,
-              height: imageHeight,
-            //   pointerEvents: 'none', // Allow clicks to pass through
-            }}
-          />
+    return (
+        <div style={{ position: 'relative', margin: '0 auto', width: 'fit-content', backgroundColor: "black" }}>
+            <div style={{ position: 'relative', overflow: 'scroll' }}>
+                <img
+                    src={imageUrl}
+                    alt="Annotated Image"
+                    onClick={addMarker}
+                    style={{ display: 'block', margin: '0 auto' }}
+                    onLoad={handleImageLoad}
+                />
+                {shouldRenderMask && (
+                    <div style={{ position: 'absolute', top: 0, left: 0 }}>
+                        <img
+                            src={maskUrl}
+                            alt="Mask"
+                            style={{
+                                position: 'relative',
+                                top: 0,
+                                left: 0,
+                                width: imageWidth,
+                                height: imageHeight,
+                                opacity: 0.5,
+                            }}
+                        />
+                        <div
+                            onClick={addMarker}
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: imageWidth,
+                                height: imageHeight,
+                            }}
+                        />
+                    </div>
+                )}
+                {markers.map((marker, index) => 
+                    {
+                      const color = labelToColor[labels[index]]
+                      return (<div
+                        key={index}
+                        style={{
+                            position: 'absolute',
+                            left: marker.x,
+                            top: marker.y,
+                            width: 10,
+                            height: 10,
+                            backgroundColor: color,
+                            borderRadius: '50%',
+                            border: '2px solid white',
+                            transform: 'translate(-50%, -50%)',
+                        }}
+                    />)}
+                )}
+            </div>
+            <div style={{ position: 'fixed', top: '2%', left: '43%', translate: 'translateX(-50%)', zIndex: 10000}}>
+              <AnnotationControls handleUndo={handleUndo} handleSave={saveMarkers} disableUndo={markers.length==0}/>
+            </div>
+
+            {jsonData && <div className="p-3" style={{borderRadius:'10px', position: 'fixed', top: '2%', left: '2%', translate: 'translateX(-50%)', zIndex: 10000, backgroundColor:'rgba(0,0,0,0.3)', color:'#fff'}}>
+              <span><small>Currently labeling:</small></span>
+              <h3 >{jsonData.label}</h3>
+            </div>}
+
+            <div style={{ position: 'fixed', top: '85vh', left: '41%', translate: 'translateX(-50%)', zIndex: 10000}}>
+              <AdditiveSubtractiveSwitch onChange={handleMarkerTypeChange} value={markerType}/>
+            </div>
+            {/* <button style={{ position: 'absolute', top: 15, left: 15 }} onClick={saveMarkers}>Save Markers</button> */}
         </div>
-      )}
-      {markers.map((marker, index) => (
-        <div
-          key={index}
-          style={{
-            position: 'absolute',
-            left: marker.x,
-            top: marker.y,
-            width: 10,
-            height: 10,
-            backgroundColor: 'red',
-            borderRadius: '50%',
-            transform: 'translate(-50%, -50%)',
-          }}
-        />
-      ))}
-      <button onClick={saveMarkers}>Save Markers</button>
-    </div>
-  );
+    );
 };
 
 export default ImageAnnotator;
