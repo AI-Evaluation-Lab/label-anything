@@ -54,7 +54,6 @@ const ImageAnnotator = () => {
 
     useEffect(() => {
       if (markers.length ==0) {
-        console.log('Ooh', markers)
         setMaskUrl(imageUrl)
       }
 
@@ -79,7 +78,6 @@ const ImageAnnotator = () => {
 
     const addMarker = (event) => {
         const { offsetX, offsetY } = event.nativeEvent;
-        console.log("Oiya", markerType)
         setMarkers(prevMarkers => [...prevMarkers, { x: offsetX, y: offsetY }]);
         setLabels(prevLabels=> [...prevLabels, markerTypeToLabel[markerType]])
         // fetchMask();
@@ -100,7 +98,6 @@ const ImageAnnotator = () => {
           setRefreshFlag(false);
           
         }).then(()=> {
-          console.log('trigger navigate')
           navigate(`/images/${id}`)
         })
         .catch(error => {
@@ -114,19 +111,13 @@ const ImageAnnotator = () => {
     };
 
     const handleUndo = () => {
-      // markers.pop()
       setMarkers(prevMarkers => prevMarkers.slice(0, -1))
       setLabels(prevLabels => prevLabels.slice(0, -1))
-      // fetchMask()
     
     }
 
     const handleMarkerTypeChange= (newType) => {
-      // markers.pop()
       setMarkerType(newType)
-      console.log(newType)
-      // fetchMask()
-    
     }
 
     return (

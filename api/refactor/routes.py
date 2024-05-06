@@ -141,7 +141,7 @@ def setup_routes(app):
                 updated_masks[mask] = image.masks[mask]
         image.masks = updated_masks
 
-        image.date_updated = datetime.utcnow()
+        image.date_updated = datetime.now()
 
         db.session.commit()
         return jsonify(to_dict(image))

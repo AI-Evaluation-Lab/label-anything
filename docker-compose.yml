@@ -4,7 +4,6 @@ services:
   api:
     build:
       context: ./api
-    # container_name: labelanything/api  # Name for your Docker image
     ports:
       - 5000:5000
     env_file:
@@ -17,7 +16,6 @@ services:
   ui:
     build:
       context: ./ui
-    # container_name: labelanything/api  # Name for your Docker image
     ports:
       - 3000:80
     volumes:

@@ -5,8 +5,8 @@ db = SQLAlchemy()
 
 class Image(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date_updated = db.Column(db.DateTime, default=datetime.utcnow)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    date_updated = db.Column(db.DateTime, default=datetime.now)
+    date_created = db.Column(db.DateTime, default=datetime.now)
     markers = db.Column(db.JSON, nullable=False, default={})
     marker_labels = db.Column(db.JSON, nullable=False, default={})
     masks = db.Column(db.JSON, nullable=False, default={})

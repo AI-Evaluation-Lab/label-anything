@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { styled } from '@mui/material/styles';
+// import { styled } from '@mui/material/styles';
 // import PrettyJson from './PrettyJson';
 import { useNavigate } from 'react-router-dom';
 import Card from '@mui/material/Card';
 import CardMedia from '@mui/material/CardMedia';
 import { CardActionArea } from '@mui/material';
-import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
+// import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import moment from 'moment';
+import Header from './Header';
 
 // const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
 //     height: 10,
@@ -50,13 +51,12 @@ const ImageList = () => {
     };
 
     return (
+        <>
+        <Header/>
         <div className="row pt-4">
             <div className="container">
                 <div className="row">
-                    <div className="col-md-12 text-center mb-3">
-                        <h2>labelanything</h2>
-                        <p>Yet another SAM annotation tool</p>
-                    </div>
+                    
 
                     {images.map(image => (
                         <div className="col-md-3 mb-3" key={image.id}>
@@ -89,6 +89,7 @@ const ImageList = () => {
                 {/* <PrettyJson data={images} /> */}
             </div>
         </div>
+        </>
     );
 };
 

@@ -1,5 +1,6 @@
 body {
   font-family: 'Poppins';
+  color: #333
 }
 
 .App {
@@ -15,6 +16,10 @@ body {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
+}
+
+a:hover {
+  text-decoration: none;
 }
 
 .App-header {

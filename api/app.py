@@ -21,6 +21,7 @@ import sys
 import shutil
 
 from embeddings import generate_embeddings, mask_predictor
+from pytz import timezone
 
 app = Flask(__name__)
 CORS(app)
@@ -30,11 +31,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+
+local_timezone = timezone('America/Los_Angeles')
+
 # Define Image model
 class Image(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date_updated = db.Column(db.DateTime, default=datetime.utcnow)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    date_updated = db.Column(db.DateTime, default=datetime.now(local_timezone))
+    date_created = db.Column(db.DateTime, default=datetime.now(local_timezone))
     markers = db.Column(db.JSON, nullable=False, default={})
     marker_labels = db.Column(db.JSON, nullable=False, default={})
     masks = db.Column(db.JSON, nullable=False, default={})
@@ -79,7 +83,7 @@ def initialize_images():
             markers = {mask_data["type"]: [] for mask_data in masks_data}  # Initialize markers dictionary with keys based on type attribute
             marker_labels = {mask_data["type"]: [] for mask_data in masks_data}  # Initialize markers dictionary with keys based on type attribute
             masks = {mask_data["type"]: {"path":"", "background":mask_data["background"], "label":mask_data["label"], "description":mask_data["description"]} for mask_data in masks_data}  # Initialize markers dictionary with keys based on type attribute
-            image = Image(date_created=datetime.now(), date_updated=datetime.now(), markers=markers, marker_labels=marker_labels, masks=masks, path=path, embedding_path=embedding_path)
+            image = Image(date_created=datetime.now(local_timezone), date_updated=datetime.now(local_timezone), markers=markers, marker_labels=marker_labels, masks=masks, path=path, embedding_path=embedding_path)
             db.session.add(image)
         db.session.commit()
 
@@ -106,74 +110,35 @@ def get_image_as_png(image_id):
         return jsonify({'message': 'Image not found'}), 404
     return send_file(image.path, mimetype='image/png')
 
-# # Update is_difficult for an Image by id
-# @app.route('/images/<int:image_id>/is_difficult', methods=['PATCH'])
-# def update_is_difficult(image_id):
-#     image = Image.query.get(image_id)
-#     if image is None:
-#         return jsonify({'message': 'Image not found'}), 404
+# Endpoint to serve a mask image as PNG
+@app.route('/images/<int:image_id>/mask/<mask_type>/png', methods=['GET'])
+def get_mask_image_as_png(image_id, mask_type):
+    image = Image.query.get(image_id)
+    if image is None:
+        return jsonify({'message': 'Image not found'}), 404
 
-#     data = request.get_json()
-#     is_difficult = data.get('is_difficult')
-#     if is_difficult is None:
-#         return jsonify({'message': 'is_difficult data not provided'}), 400
+    mask_image_path = f"{os.getenv('MASKS_DIR')}/{image.path.split('/')[-1].split('.')[0]}_{mask_type}.png"
+    if not os.path.exists(mask_image_path):
+        return jsonify({'message': 'Mask image not found'}), 404
 
-#     image.is_difficult = is_difficult
-#     db.session.commit()
+    return send_file(mask_image_path, mimetype='image/png')
 
-#     return jsonify(to_dict(image))
+# Update is_difficult for an Image by id
+@app.route('/images/<int:image_id>/is_difficult', methods=['PATCH'])
+def update_is_difficult(image_id):
+    image = Image.query.get(image_id)
+    if image is None:
+        return jsonify({'message': 'Image not found'}), 404
 
-# # Update comments for an Image by id
-# @app.route('/images/<int:image_id>/comments', methods=['PATCH'])
-# def update_comments(image_id):
-#     image = Image.query.get(image_id)
-#     if image is None:
-#         return jsonify({'message': 'Image not found'}), 404
+    data = request.get_json()
+    is_difficult = data.get('is_difficult')
+    if is_difficult is None:
+        return jsonify({'message': 'is_difficult data not provided'}), 400
 
-#     data = request.get_json()
-#     comments = data.get('comments')
-#     if comments is None:
-#         return jsonify({'message': 'comments data not provided'}), 400
+    image.is_difficult = is_difficult
+    db.session.commit()
 
-#     image.comments = comments
-#     db.session.commit()
-
-#     return jsonify(to_dict(image))
-
-# @app.route('/images/<int:image_id>/markers/<string:marker_type>', methods=['PATCH'])
-# def update_marker(image_id, marker_type):
-#     try:
-#         image = Image.query.get(image_id)
-#         if image is None:
-#             return jsonify({'message': 'Image not found'}), 404
-        
-#         data = request.get_json()
-#         new_marker = data.get('new_marker')
-#         if new_marker is None:
-#             return jsonify({'message': 'New marker data not provided'}), 400
-
-#         marker_types = image.marker_types
-#         if marker_type not in marker_types:
-#             return jsonify({'message': f'Marker type "{marker_type}" not found for this image'}), 404
-
-#         updated_markers = {}
-#         for key in marker_types:
-#             if key == marker_type:
-#                 updated_markers[key]= new_marker
-#             else:
-#                 updated_markers[key] = marker_types[key]
-
-#         image.date_updated = datetime.utcnow()
-#         image.markers = updated_markers
-#         db.session.commit()
-
-#         return jsonify(to_dict(image))
-#     except SQLAlchemyError as e:
-#         # Log the error for debugging
-#         print(f"Failed to update marker: {e}")
-#         # Rollback changes if an error occurs
-#         db.session.rollback()
-#         return jsonify({'message': 'Failed to update marker'}), 500
+    return jsonify(to_dict(image))
 
 @app.route('/images/<int:image_id>/mask', methods=['GET'])
 def get_mask(image_id):
@@ -243,10 +208,10 @@ def update_mask(image_id):
     # persist_image_mask(image_id, mask_type, mask_image, point_coords, point_labels)
 
     image_name = image.path.split("/")[-1].split(".png")[0]
-    MASKS_DIR = f"{os.getenv('MASKS_DIR')}/{image_name}.png"
+    MASKS_DIR = f"{os.getenv('MASKS_DIR')}"
     Path(MASKS_DIR).mkdir(exist_ok=True, parents=True)
 
-    mask_image_path = f"{MASKS_DIR}/{mask_type}.png"
+    mask_image_path = f"{MASKS_DIR}/{image_name}_{mask_type}.png"
     mask_image.save(mask_image_path, format="PNG")
 
     updated_markers = {}
@@ -277,7 +242,7 @@ def update_mask(image_id):
             updated_masks[mask] = image.masks[mask]
     image.masks = updated_masks
 
-    image.date_updated = datetime.utcnow()
+    image.date_updated = datetime.now(local_timezone)
 
     db.session.commit()
     return jsonify(to_dict(image))
@@ -289,11 +254,46 @@ def delete_contents(folder):
         os.remove(f'{folder}/{f}')
     Path(folder).mkdir(exist_ok=True, parents=True)
 
+
+
+def update_masks_from_files():
+    IMAGES_DIR = os.getenv('IMAGES_DIR')
+    MASKS_DIR = os.getenv('MASKS_DIR')
+    masks_json_path = os.getenv('MASKS_JSON_PATH')
+
+    if os.path.exists(IMAGES_DIR) and os.path.exists(MASKS_DIR) and os.path.exists(masks_json_path):
+        with open(masks_json_path, "r") as f:
+            masks_data = json.load(f)
+
+        for image in Image.query.all():
+            image_name = image.path.split("/")[-1].split(".png")[0]
+
+            # Retain existing masks that do not have corresponding mask files
+            existing_masks = {mask_type: mask_data for mask_type, mask_data in image.masks.items() if not os.path.exists(mask_data["path"])}
+
+            updated_masks = {}
+            for mask_data in masks_data:
+                mask_type = mask_data["type"]
+                mask_image_path = f"{MASKS_DIR}/{image_name}_{mask_type}.png"
+                if os.path.exists(mask_image_path):
+                    updated_mask = {
+                        "path": mask_image_path,
+                        "background": mask_data["background"],
+                        "label": mask_data["label"],
+                        "description": mask_data["description"]
+                    }
+                    existing_masks[mask_type] = updated_mask
+
+            # Update masks with existing masks
+            # updated_masks.update(existing_masks)
+
+            image.masks = existing_masks
+            db.session.commit()
+
 def reset(reset=False):
     if reset:
         print('Reset detected, reinitializing everything..')
-        delete_contents('MASKS_DIR')
-        # delete_contents('EMBEDDINGS_DIR')
+        # delete_contents('MASKS_DIR')
 
         generate_embeddings(os.getenv('IMAGES_DIR'), os.getenv('EMBEDDINGS_DIR'))
         
@@ -303,14 +303,12 @@ def reset(reset=False):
         # Recreate tables
         db.create_all()
         initialize_images()
-
+        update_masks_from_files()
 
 with app.app_context():
-    # if len(os.listdir(os.getenv('EMBEDDINGS_DIR'))) != len(os.listdir(os.getenv('IMAGES_DIR'))):
     reset(True)
 
 
 if __name__ == '__main__':
-    # initialize_images()
     app.run(debug=True)
 

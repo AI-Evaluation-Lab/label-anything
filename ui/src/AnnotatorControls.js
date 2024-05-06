@@ -22,16 +22,16 @@ import Stack from '@mui/material/Stack';
 const AnnotationControls = (props) => {
 //   const classes = useStyles();
 
-  const handleUndo = () => {
-    // Handle undo action
-    console.log('Undo Clicked')
-  };
+  // const handleUndo = () => {
+  //   // Handle undo action
+  //   console.log('Undo Clicked')
+  // };
 
-  const handleSave = () => {
-    // Handle save action
-    console.log('Save Clicked')
+  // const handleSave = () => {
+  //   // Handle save action
+  //   console.log('Save Clicked')
 
-  };
+  // };
 
   const handleComment = () => {
     // Handle comment action

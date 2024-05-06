@@ -12,6 +12,8 @@ import Avatar from '@mui/material/Avatar';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import EastIcon from '@mui/icons-material/East';
+import Header from './Header';
+
 
 const ImageDetails = () => {
   const navigate = useNavigate();
@@ -42,6 +44,8 @@ const ImageDetails = () => {
   };
 
   return (
+    <>
+    <Header/>
     <div className="row m-3">
       <div className="container">
         {imageData ? (
@@ -60,11 +64,6 @@ const ImageDetails = () => {
                     <>
                       <ListItem alignItems="" secondaryAction={
                         <React.Fragment>
-                          {/* {imageData.masks[d].path !== "" && (
-                            <Button className="mr-2" size="small" variant="outlined" startIcon={<PreviewIcon />}>
-                              <small>View</small>
-                            </Button>
-                          )} */}
                           {imageData.masks[d].path !== "" && (
                             <Button onClick={()=>{navigate(`/images/${imageData.id}/annotate/${d}`, { state: { imageData: imageData } });}} size="small" variant="contained" endIcon={<EastIcon />}>
                               <small>Redo Segmentation</small>
@@ -78,7 +77,8 @@ const ImageDetails = () => {
                         </React.Fragment>
                       }>
                         <ListItemAvatar>
-                          <Avatar sx={{ bgcolor: imageData.masks[d].background }}>{d}</Avatar>
+                          {imageData.masks[d].path === "" && <Avatar sx={{ bgcolor: imageData.masks[d].background }}>{d}</Avatar>}
+                          {imageData.masks[d].path !== "" && <Avatar src={`http://localhost:5000/images/${imageData.id}/mask/${d}/png`}>{d}</Avatar>}
                         </ListItemAvatar>
                         <ListItemText
                           id={d}
@@ -104,6 +104,7 @@ const ImageDetails = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 
