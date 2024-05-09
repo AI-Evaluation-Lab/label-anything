@@ -352,6 +352,10 @@ def reset(reset=False):
         update_masks_from_files()
 
 
+import os
+import pandas as pd
+from pathlib import Path
+
 def save_details():
     Path("/metrics").mkdir(exist_ok=True, parents=True)
     images = Image.query.all()
@@ -369,7 +373,23 @@ def save_details():
                 }
             )
 
-    pd.DataFrame(all_masks).to_csv("/metrics/ui-analytics.csv", index=False)
+    csv_path = "/metrics/ui-analytics.csv"
+    if not os.path.exists(csv_path):
+        pd.DataFrame(all_masks).to_csv(csv_path, index=False)
+    else:
+        existing_data = pd.read_csv(csv_path)
+        updated_data = existing_data.copy()
+        for row in all_masks:
+            mask_path = row["path"]
+            mask_type = row["mask_type"]
+            time_taken = row["time_taken"]
+            mask_index = (updated_data["path"] == mask_path) & (updated_data["mask_type"] == mask_type)
+            if len(updated_data[mask_index]) == 0:
+                updated_data = updated_data.append(row, ignore_index=True)
+            elif pd.isnull(updated_data.loc[mask_index, "time_taken"]).all():
+                updated_data.loc[mask_index, "time_taken"] = time_taken
+        updated_data.to_csv(csv_path, index=False)
+
 
 
 with app.app_context():
