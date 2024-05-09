@@ -33,7 +33,3 @@
 
 #     # Recreate tables
 #     db.create_all()
-
-
-
-
