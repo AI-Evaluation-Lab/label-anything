@@ -4,3 +4,5 @@ labeled/
 models/
 embeddings/
 instance/
+fine-tune/
+metrics/

@@ -12,3 +12,4 @@ tdqm==0.0.1
 python-dotenv==1.0.1
 Flask-SQLAlchemy==3.1.1
 pytz==2024.1
+pandas==2.2.2

@@ -12,6 +12,7 @@ const ImageAnnotator = () => {
     const navigate = useNavigate();
 
     const [jsonData, setJsonData] = useState(null)
+    const [startTime, setStartTime] = useState(null); // State to store start time
     useEffect(() => {
       const fetchJSON = async () => {
         try {
@@ -19,6 +20,7 @@ const ImageAnnotator = () => {
           const data = await response.json();
           const typeInfo = data.filter(d=>d.type == type)[0]
           setJsonData(typeInfo);
+          setStartTime(performance.now());
         } catch (error) {
           console.error('Error fetching JSON data:', error);
         }
@@ -85,10 +87,15 @@ const ImageAnnotator = () => {
 
     const saveMarkers = () => {
       // save markers
+
+      const endTime = performance.now(); // Get end time when saveMarkers is triggered
+      const timeSpent = (endTime - startTime)/1000; // Calculate time spent
+      console.log('timeSpent', timeSpent)
       axios.patch(`http://localhost:5000/images/${id}/mask`, {
         markers: JSON.stringify(markers),
         labels: JSON.stringify(labels),
-        type: type
+        type: type,
+        time: timeSpent
       }, {
         responseType: 'blob'
       })
@@ -113,7 +120,6 @@ const ImageAnnotator = () => {
     const handleUndo = () => {
       setMarkers(prevMarkers => prevMarkers.slice(0, -1))
       setLabels(prevLabels => prevLabels.slice(0, -1))
-    
     }
 
     const handleMarkerTypeChange= (newType) => {

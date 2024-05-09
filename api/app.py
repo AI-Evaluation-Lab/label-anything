@@ -2,6 +2,7 @@ import os
 import json
 import uuid
 import io
+import pandas as pd
 
 from flask import Flask, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
@@ -82,7 +83,7 @@ def initialize_images():
             embedding_path = os.path.join(EMBEDDINGS_DIR, f"{filename.split('.png')[0]}.pt")  # Adjust this based on your implementation
             markers = {mask_data["type"]: [] for mask_data in masks_data}  # Initialize markers dictionary with keys based on type attribute
             marker_labels = {mask_data["type"]: [] for mask_data in masks_data}  # Initialize markers dictionary with keys based on type attribute
-            masks = {mask_data["type"]: {"path":"", "background":mask_data["background"], "label":mask_data["label"], "description":mask_data["description"]} for mask_data in masks_data}  # Initialize markers dictionary with keys based on type attribute
+            masks = {mask_data["type"]: {"path":"", "background":mask_data["background"], "label":mask_data["label"], "description":mask_data["description"], "time_taken": None } for mask_data in masks_data}  # Initialize markers dictionary with keys based on type attribute
             image = Image(date_created=datetime.now(local_timezone), date_updated=datetime.now(local_timezone), markers=markers, marker_labels=marker_labels, masks=masks, path=path, embedding_path=embedding_path)
             db.session.add(image)
         db.session.commit()
@@ -180,6 +181,7 @@ def update_mask(image_id):
     point_coords = data.get('markers')
     point_labels= data.get('labels')
     mask_type = data.get('type')
+    time_taken = data.get('time')
     print('### - point_coords received', point_coords)
     print('### - point_labels received', point_labels, type(json.loads(point_labels)))
 
@@ -238,6 +240,7 @@ def update_mask(image_id):
             updated_masks[mask]['description'] = image.masks[mask]['description']
             updated_masks[mask]['label'] = image.masks[mask]['label']
             updated_masks[mask]['path'] = mask_image_path
+            updated_masks[mask]['time_taken'] = time_taken
         else:
             updated_masks[mask] = image.masks[mask]
     image.masks = updated_masks
@@ -245,6 +248,8 @@ def update_mask(image_id):
     image.date_updated = datetime.now(local_timezone)
 
     db.session.commit()
+    save_details()
+
     return jsonify(to_dict(image))
 
 def delete_contents(folder):
@@ -304,6 +309,27 @@ def reset(reset=False):
         db.create_all()
         initialize_images()
         update_masks_from_files()
+
+def save_details():
+    Path('/metrics').mkdir(exist_ok=True, parents=True)
+    images = Image.query.all()
+    masks = [to_dict(image)['masks'] for image in images]
+    paths = [to_dict(image)['path'] for image in images]
+
+    all_masks = []
+    for mask, path in zip(masks, paths):
+        for mask_type in mask:
+            all_masks.append({
+                'path': path,
+                'mask_type': mask_type,
+                'time_taken': mask[mask_type].get('time_taken')
+            })
+
+    # for images
+    # print("###--- Masks data", all_masks)
+    pd.DataFrame(all_masks).to_csv('/metrics/ui-analytics.csv', index=False)
+
+
 
 with app.app_context():
     reset(True)

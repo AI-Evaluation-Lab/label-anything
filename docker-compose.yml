@@ -9,11 +9,12 @@ services:
     env_file:
       - ./.env  # Path to your .env file in the parent directory
     volumes:
-      - ./images:/images
+      - ./fine-tune/cropped:/images
       - ./masks:/masks
       - ./embeddings:/embeddings
       - ./masks.json:/masks.json
       - ./models:/app/models
+      - ./metrics:/metrics
   ui:
     build:
       context: ./ui
