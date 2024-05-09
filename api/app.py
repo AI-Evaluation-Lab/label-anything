@@ -325,8 +325,6 @@ def save_details():
                 'time_taken': mask[mask_type].get('time_taken')
             })
 
-    # for images
-    # print("###--- Masks data", all_masks)
     pd.DataFrame(all_masks).to_csv('/metrics/ui-analytics.csv', index=False)
 
 
